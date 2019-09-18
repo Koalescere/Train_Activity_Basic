@@ -14,8 +14,8 @@ firebase.initializeApp(firebaseConfig);
 
 var trainName = "";
 var destination = "";
-var firsttrainTime = "";
-var frequency = "";
+var firsttrainTime = "12:00";
+var frequency = "0";
 
 
 //Button for adding trains to schedule
@@ -33,28 +33,53 @@ $("#add-frequency-btn").on("click", function () {
         firsttrainTime: firsttrainTime,
         frequency: frequency,
     })   
-        
-    $("#train-name-input").val("");
-    $("#destination-input").val("");
-    $("#trainTime-input").val("");
-    $("#frequency").val("");        
+    
+    //not required due to place holder
+    // $("#train-name-input").val("");
+    // $("#destination-input").val("");
+    // $("#trainTime-input").val("");
+    // $("#frequency").val("");        
 
 })
 
 firebase.database().ref().on("child_added", function (childSnapshot) {
-  console.log(childSnapshot.val())
+  //console.log(childSnapshot.val())
   
   var tname = childSnapshot.val().trainName;
   var dest = childSnapshot.val().destination;
-  var ttime = childSnapshot.val().firsttrainTime;
   var freq = childSnapshot.val().frequency;
+
+  //first time pushed back a year; ensure current time/moment ahead 
+  var ftraintimeConverted = moment(firsttrainTime, "hh:mm").subtract(1, "years");
+  //console.log(ftraintimeConverted);
+
+  //current time
+  var currentTime = moment();
+  console.log("CURRENT TIME: " + moment(currentTime).format("hh:mm"));
+
+  //delta between current time and first train time  
+  var diffTime = moment().diff(moment(ftraintimeConverted), "minutes");
+  //console.log("DIFFERENCE IN TIME: " + diffTime);  
+
+  //remainder from modular
+  var tRemainder = diffTime % freq;
+  //console.log(tRemainder);
+
+  //delta between frequency & remainder
+  var tMinutesTillTrain = freq - tRemainder;
+  //console.log("MINUTES TILL TRAIN: " + tMinutesTillTrain);
+
+  //delta from line 68 added to current time
+  var nextTrain = moment().add(tMinutesTillTrain, "minutes");
+  //console.log("ARRIVAL TIME: " + moment(nextTrain).format("hh:mm"));
 
   // Create the new row
   var newRow = $("<tr>").append(
     $("<td>").text(tname),
     $("<td>").text(dest),
-    $("<td>").text(ttime),
     $("<td>").text(freq),
+    $("<td>").text(nextTrain),
+    $("<td>").text(tMinutesTillTrain)
   );
 
   // Append the new row to the table
