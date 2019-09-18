@@ -12,6 +12,54 @@ var firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-firebase.database().ref().on("value", function(snapshot){
-    console.log(snapshot.val())
+var trainName = "";
+var destination = "";
+var firsttrainTime = "";
+var frequency = "";
+
+
+//Button for adding trains to schedule
+$("#add-frequency-btn").on("click", function () {
+    event.preventDefault
+    trainName = $("#train-name-input").val().trim();
+    destination = $("#destination-input").val().trim();
+    firsttrainTime = $("#trainTime-input").val().trim();
+    frequency = $("#frequency").val().trim();
+
+    //to avoid over writing the database change set to push
+    firebase.database().ref().push({
+        trainName: trainName,
+        destination: destination,
+        firsttrainTime: firsttrainTime,
+        frequency: frequency,
+    })   
+        
+    $("#train-name-input").val("");
+    $("#destination-input").val("");
+    $("#trainTime-input").val("");
+    $("#frequency").val("");        
+
 })
+
+firebase.database().ref().on("child_added", function (childSnapshot) {
+  console.log(childSnapshot.val())
+  
+  var tname = childSnapshot.val().trainName;
+  var dest = childSnapshot.val().destination;
+  var ttime = childSnapshot.val().firsttrainTime;
+  var freq = childSnapshot.val().frequency;
+
+  // Create the new row
+  var newRow = $("<tr>").append(
+    $("<td>").text(tname),
+    $("<td>").text(dest),
+    $("<td>").text(ttime),
+    $("<td>").text(freq),
+  );
+
+  // Append the new row to the table
+  $("#trainSchedule-table> tbody").append(newRow);
+});
+
+//$("restart-button).on("cick", fucntion(){
+    // firebase.database().ref().set({
